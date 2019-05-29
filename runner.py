@@ -85,7 +85,7 @@ class MyParser:
             while self.la == '^':
                 self.match('^')
                 t2 = self.term()
-                print('xor : {} ^ {} '.format(t,t2))
+                print('xor : {:b} ^ {:b} '.format(t,t2))
                 t = t^t2
             if self.la == ')' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None:
                 return t
@@ -99,7 +99,7 @@ class MyParser:
             while self.la == '|':
                 self.match('|')
                 f2 = self.factor()
-                print('or : {} | {} '.format(f,f2))
+                print('or : {:b} | {:b} '.format(f,f2))
                 f = f|f2
             if self.la == ')' or self.la == '^' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None:
                 return f
@@ -113,7 +113,7 @@ class MyParser:
             while self.la == '&':
                 self.match('&')
                 a2 = self.atom()
-                print('and : {} & {} '.format(a,a2))
+                print('and : {:b} & {:b} '.format(a,a2))
                 a = a&a2
             if self.la == ')' or self.la == '|' or self.la == '^' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None:
                 return a
@@ -134,7 +134,7 @@ class MyParser:
                 return self.varList[varname]
             raise RunError("no variable name")
         elif self.la == 'BINARY_NUM' :
-            binary_num = int(self.text)
+            binary_num = int(self.text,2)
             self.match('BINARY_NUM')
             return (binary_num)
         else: #Error
