@@ -1,54 +1,55 @@
 import plex
 
 class RunError(Exception):
-	pass
+    pass
 class ParseError(Exception):
-	pass
+    pass
 
 class MyParser:
     def __init__(self):
-		letter = plex.Range('azAZ')
-		num = plex.Range('09')
-		digit = plex.Range('01')
-		name = letter + plex.Rep(letter|num)
-		space = plex.Any(' \n\t')
+        letter = plex.Range('azAZ')
+        num = plex.Range('09')
+        digit = plex.Range('01')
+        andop = plex.Str('and')
+        orop = plex.Str('or')
+        xorop = plex.Str('xor')
+        name = letter + plex.Rep(letter|num)
+        space = plex.Any(' \n\t')
 
-		Keyword = plex.Str('print','PRINT')
-		binary= plex.Rep1(digit)
+        Keyword = plex.Str('print','PRINT')
+        binary= plex.Rep1(digit)
 
-		equals = plex.Str( '=')
-		andop = plex.Str('&')
-		orop = plex.Str('|')
-		xorop = plex.Str('^')
-		parethensys1 = plex.Str('(')
-		parethensys2 = plex.Str(')')
-		self.varList={}
-		self.lexicon = plex.Lexicon([
+        equals = plex.Str( '=')
+        
+        parethensys1 = plex.Str('(')
+        parethensys2 = plex.Str(')')
+        self.varList={}
+        self.lexicon = plex.Lexicon([
             (Keyword, 'PRINT_TOKEN'),
-			(name, 'ID_TOKEN'),             #name = letter + plex.Rep(letter|digit)
-			(binary, 'BINARY_NUM'),
-			(equals, '='),
-			(andop, plex.TEXT),
-			(orop, plex.TEXT),
-			(xorop, plex.TEXT),
-			(parethensys1, '('),
-			(parethensys2, ')'),
-			(space, plex.IGNORE)			
-		])
-		
+            (andop, plex.TEXT),
+            (orop, plex.TEXT),
+            (xorop, plex.TEXT),
+            (name, 'ID_TOKEN'),             #name = letter + plex.Rep(letter|digit)
+            (binary, 'BINARY_NUM'),
+            (equals, '='),
+            (parethensys1, '('),
+            (parethensys2, ')'),
+            (space, plex.IGNORE)			
+        ])
+        
     def createScanner(self,fp):
         self.scanner = plex.Scanner(self.lexicon,fp)
         self.la,self.text = self.next_token()
 
     def next_token(self):
-		return self.scanner.read()
-	
+        return self.scanner.read()
+    
     def match(self,token):
-		if self.la == token:
-			self.la,self.text=self.next_token()
-		else:
-			raise ParseError("found {} instead of {}".format(self.la,token))
-			
+        if self.la == token:
+            self.la,self.text=self.next_token()
+        else:
+            raise ParseError("found {} instead of {}".format(self.la,token))
+            
     def parse(self,fp):
         self.createScanner(fp)
         self.stmt_list()
@@ -85,8 +86,8 @@ class MyParser:
             raise ParseError('Expected a parethensys,an id or a binary number')
             
     def term_tail(self):
-        if self.la == '^': #first set: token xor
-            self.match('^')
+        if self.la == 'xor': #first set: token xor
+            self.match('xor')
             self.term()
             self.term_tail()
         elif self.la == ')' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None: #follow set: ),id,print
@@ -102,11 +103,11 @@ class MyParser:
             raise ParseError('Expected a parethensys, an id or a binary number')
             
     def factor_tail(self):
-        if self.la == '|' : #first set: token or
-            self.match('|')
+        if self.la == 'or' : #first set: token or
+            self.match('or')
             self.factor()
             self.factor_tail()
-        elif self.la == ')' or self.la == '^' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None: #follow set: ) , xor , id ,print
+        elif self.la == ')' or self.la == 'xor' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None: #follow set: ) , xor , id ,print
             return
         else: #Error
             raise ParseError('Expected an opperation')
@@ -119,11 +120,11 @@ class MyParser:
             raise ParseError('Expected an parethensys, an opperation or a binary number')
             
     def atom_tail(self):
-        if self.la == '&' : #first set: and token
-            self.match('&')
+        if self.la == 'and' : #first set: and token
+            self.match('and')
             self.atom()
             self.atom_tail()
-        elif self.la == ')' or self.la == '|' or self.la == '^' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None: #follow set: ) , or , xor , id ,print
+        elif self.la == ')' or self.la == 'or' or self.la == 'xor' or self.la == 'ID_TOKEN' or self.la == 'PRINT_TOKEN' or self.la == None: #follow set: ) , or , xor , id ,print
             return
         else: #Error
             raise ParseError('Expected an opperation')
@@ -150,4 +151,4 @@ class MyParser:
 parser = MyParser()
 
 with open('input.txt', 'r') as fp:
-	parser.parse(fp)
+    parser.parse(fp)
